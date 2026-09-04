@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var urlText = "https://github.com/coji/natural-japanese"
+    @State private var urlText = ""
     @State private var selected: Set<String> = Set(AgentTarget.selectable.map(\.id))
     @State private var logText = "GitHub のスキル URL を入れて「入れる」を押してください。\nCursor / Claude Code / Codex にまとめて入ります。"
     @State private var isInstalling = false

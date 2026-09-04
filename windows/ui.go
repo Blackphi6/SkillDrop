@@ -31,7 +31,7 @@ const indexHTML = `<!DOCTYPE html>
   <h1>SkillDrop</h1>
   <p class="sub">GitHub のスキル URL を入れて、Cursor / Claude Code / Codex にまとめて入れます。<br/>（Windows 版・動作は環境によって未確認のことがあります）</p>
   <label for="url">GitHub URL・owner/repo・SKILL.md のリンク</label>
-  <input id="url" type="text" placeholder="https://github.com/owner/repo/.../SKILL.md" value="https://github.com/coji/natural-japanese"/>
+  <input id="url" type="text" placeholder="https://github.com/owner/repo/.../SKILL.md" value=""/>
   <div class="agents">
     <label><input type="checkbox" value="cursor" checked/> Cursor</label>
     <label><input type="checkbox" value="claude" checked/> Claude Code</label>

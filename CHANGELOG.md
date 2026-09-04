@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.1 — 2026-09-04
+
+- macOS zip から AppleDouble (`._*`) を除去
+- ad-hoc 署名を付与
+- `Install.command` を同梱（隔離属性を外して /Applications へ入れて起動）
+- 「壊れているため開けません」対策
+
 ## v1.1.0 — 2026-09-04
 
 - Windows 版を追加（amd64 / arm64 の `.exe`、ブラウザ GUI）

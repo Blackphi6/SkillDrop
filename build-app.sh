@@ -34,9 +34,9 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
   <key>CFBundleIdentifier</key>
   <string>local.skilldrop.app</string>
   <key>CFBundleVersion</key>
-  <string>2</string>
+  <string>3</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.0.1</string>
+  <string>1.1.1</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleExecutable</key>
@@ -59,10 +59,13 @@ cp "$BIN" "$APP_DIR/Contents/MacOS/SkillDrop"
 chmod +x "$APP_DIR/Contents/MacOS/SkillDrop"
 cp "$ROOT/Resources/AppIcon.icns" "$APP_DIR/Contents/Resources/AppIcon.icns"
 
-# arm64 専用であることを明示
+# Gatekeeper 対策: 拡張属性を落として ad-hoc 署名
+xattr -cr "$APP_DIR" 2>/dev/null || true
+codesign --force --deep --sign - "$APP_DIR"
+codesign --verify --verbose=2 "$APP_DIR" 2>&1 || true
+
 lipo -info "$APP_DIR/Contents/MacOS/SkillDrop" || true
 file "$APP_DIR/Contents/MacOS/SkillDrop"
-ls -la "$APP_DIR/Contents/Resources/AppIcon.icns"
 
 echo "できたアプリ: $APP_DIR"
 echo "起動: open \"$APP_DIR\""

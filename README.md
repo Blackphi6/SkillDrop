@@ -10,9 +10,15 @@ GitHub の Agent Skill を、ボタンひとつで **Cursor / Claude Code / Code
 ## 使い方（macOS）
 
 1. [Releases](https://github.com/Blackphi6/SkillDrop/releases) から `SkillDrop-macos-arm64.zip` をダウンロード
-2. 解凍して `SkillDrop.app` を開く（初回は右クリック → 開く、が必要なことがあります）
-3. GitHub URL（または `owner/repo`、`.../SKILL.md` の直リンク）を貼る
-4. 入れる先にチェックを入れて **入れる**
+2. 解凍して **`Install.command` をダブルクリック**（推奨）
+3. `/Applications` に入り、自動で起動します
+
+ブラウザから落とした `SkillDrop.app` を直接開くと、未公証のため「壊れている」と出ることがあります。そのときは `Install.command` を使うか:
+
+```bash
+xattr -cr /Applications/SkillDrop.app
+open /Applications/SkillDrop.app
+```
 
 本体は `~/.agents/skills` に保存し、選んだエージェントへシンボリックリンクします。
 

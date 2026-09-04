@@ -30,8 +30,9 @@ struct SkillInstaller: Sendable {
     func install(input: String, targets: [AgentTarget], onLog: (String) -> Void = { _ in }) throws -> InstallResult {
         var lines: [String] = []
         func log(_ s: String) {
-            lines.append(s)
-            onLog(s)
+            let shown = Self.tildefy(s)
+            lines.append(shown)
+            onLog(shown)
         }
 
         let repo = try Self.parseRepo(input)
@@ -100,6 +101,17 @@ struct SkillInstaller: Sendable {
     }
 
     // MARK: - helpers
+
+    /// ログ用にホームディレクトリを ~ に置き換える
+    private static func tildefy(_ s: String) -> String {
+        let home = NSHomeDirectory()
+        guard !home.isEmpty else { return s }
+        if s == home { return "~" }
+        if s.hasPrefix(home + "/") {
+            return "~" + String(s.dropFirst(home.count))
+        }
+        return s.replacingOccurrences(of: home + "/", with: "~/")
+    }
 
     private struct Repo {
         let owner: String

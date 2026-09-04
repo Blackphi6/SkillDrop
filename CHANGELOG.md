@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.1 — 2026-09-04
+
+- ログのホームディレクトリ表示を `~` に変更（例: `~/.agents/skills/...`）
+
 ## v1.2.0 — 2026-09-04
 
 - Homebrew cask を追加（推奨インストール経路）
@@ -10,7 +14,6 @@
 
 - macOS zip から AppleDouble (`._*`) を除去
 - ad-hoc 署名を付与
-- （旧）Install.command 同梱
 
 ## v1.1.0 — 2026-09-04
 

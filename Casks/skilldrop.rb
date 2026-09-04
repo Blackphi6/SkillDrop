@@ -1,6 +1,6 @@
 cask "skilldrop" do
-  version "1.2.0"
-  sha256 "e2576b94e472357fe0214f936af3e3d0c1b863f09344eaf02bdfe20243eeb315"
+  version "1.2.1"
+  sha256 "9a5463a931795f4e9d45b63f0cf5f6d81eea78a8d8613f501c91be204d2995ef"
 
   url "https://github.com/Blackphi6/SkillDrop/releases/download/v#{version}/SkillDrop-macos-arm64.zip"
   name "SkillDrop"

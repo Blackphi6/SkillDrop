@@ -245,9 +245,10 @@ func linkOrCopy(dest, link string) error {
 func install(input string, agentIDs []string, logfn func(string)) (installResult, error) {
 	var lines []string
 	log := func(s string) {
-		lines = append(lines, s)
+		shown := tildefy(s)
+		lines = append(lines, shown)
 		if logfn != nil {
-			logfn(s)
+			logfn(shown)
 		}
 	}
 
@@ -342,6 +343,24 @@ func joinNames(skills []foundSkill) string {
 		names = append(names, s.Name)
 	}
 	return strings.Join(names, ", ")
+}
+
+// ログ用にホームディレクトリを ~ に置き換える
+func tildefy(s string) string {
+	home := homeDir()
+	if home == "" {
+		return s
+	}
+	home = filepath.Clean(home)
+	if s == home {
+		return "~"
+	}
+	prefix := home + string(filepath.Separator)
+	if strings.HasPrefix(s, prefix) {
+		return "~/" + filepath.ToSlash(strings.TrimPrefix(s, prefix))
+	}
+	// git のメッセージなどに絶対パスが混ざる場合
+	return strings.ReplaceAll(s, prefix, "~/")
 }
 
 func openBrowser(url string) {

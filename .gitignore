@@ -4,3 +4,4 @@ dist/
 *.xcodeproj/
 .DS_Store
 Resources/AppIcon.iconset/
+windows/SkillDrop-windows-*.exe

@@ -9,13 +9,13 @@ enum SkillInstallError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .badURL:
-            return "GitHub の URL（または owner/repo）が読めませんでした"
+            return L10n.t("err_bad_url")
         case .gitFailed(let msg):
-            return "リポジトリの取得に失敗しました: \(msg)"
+            return L10n.tf("err_git", msg)
         case .noSkillFound:
-            return "SKILL.md が見つかりませんでした"
+            return L10n.t("err_no_skill")
         case .copyFailed(let msg):
-            return "コピーに失敗しました: \(msg)"
+            return L10n.tf("err_copy", msg)
         }
     }
 }
@@ -36,9 +36,9 @@ struct SkillInstaller: Sendable {
         }
 
         let repo = try Self.parseRepo(input)
-        log("対象: \(repo.owner)/\(repo.name)")
+        log(L10n.tf("log_target", repo.owner, repo.name))
         if let filter = repo.pathFilter, !filter.isEmpty {
-            log("パス指定: \(filter)")
+            log(L10n.tf("log_path", filter))
         }
 
         let tempRoot = FileManager.default.temporaryDirectory
@@ -47,7 +47,7 @@ struct SkillInstaller: Sendable {
         defer { try? FileManager.default.removeItem(at: tempRoot) }
 
         let cloneURL = "https://github.com/\(repo.owner)/\(repo.name).git"
-        log("clone: \(cloneURL)")
+        log(L10n.tf("log_clone", cloneURL))
         let cloneOut = try Self.run("/usr/bin/git", ["clone", "--depth", "1", cloneURL, tempRoot.path])
         if !cloneOut.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             log(cloneOut.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -57,9 +57,9 @@ struct SkillInstaller: Sendable {
         var skillDirs = try Self.findSkillDirectories(in: tempRoot, fallbackName: repo.name)
         if let filter = repo.pathFilter, !filter.isEmpty {
             skillDirs = Self.filterSkills(skillDirs, pathFilter: filter)
-            log("絞り込み後: \(skillDirs.map(\.name).joined(separator: ", "))")
+            log(L10n.tf("log_filtered", skillDirs.map(\.name).joined(separator: ", ")))
         } else {
-            log("見つかったスキル: \(skillDirs.map(\.name).joined(separator: ", "))")
+            log(L10n.tf("log_found", skillDirs.map(\.name).joined(separator: ", ")))
         }
         guard !skillDirs.isEmpty else { throw SkillInstallError.noSkillFound }
 
@@ -74,9 +74,9 @@ struct SkillInstaller: Sendable {
             let dest = canonical.skillsDir.appendingPathComponent(name)
             if fm.fileExists(atPath: dest.path) {
                 try fm.removeItem(at: dest)
-                log("更新: \(dest.path)")
+                log(L10n.tf("log_update", dest.path))
             } else {
-                log("新規: \(dest.path)")
+                log(L10n.tf("log_new", dest.path))
             }
             do {
                 try fm.copyItem(at: src, to: dest)
@@ -92,11 +92,11 @@ struct SkillInstaller: Sendable {
                     try? fm.removeItem(at: link)
                 }
                 try fm.createSymbolicLink(at: link, withDestinationURL: dest)
-                log("リンク: \(target.displayName) → \(link.path)")
+                log(L10n.tf("log_link", target.displayName, link.path))
             }
         }
 
-        log("完了: \(installed.count) 件")
+        log(L10n.tf("log_done", installed.count))
         return InstallResult(skillNames: installed, log: lines.joined(separator: "\n"))
     }
 

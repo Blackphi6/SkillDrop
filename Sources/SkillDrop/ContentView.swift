@@ -3,7 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var urlText = ""
     @State private var selected: Set<String> = Set(AgentTarget.selectable.map(\.id))
-    @State private var logText = "GitHub のスキル URL を入れて「入れる」を押してください。\nCursor / Claude Code / Codex にまとめて入ります。"
+    @State private var logText = L10n.t("log_hint")
     @State private var isInstalling = false
     @State private var lastSkills: [String] = []
     @State private var errorMessage: String?
@@ -26,7 +26,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("SkillDrop")
                 .font(.system(size: 28, weight: .semibold, design: .rounded))
-            Text("URL を入れて、ボタンひとつでエージェントにスキルを入れます。")
+            Text(L10n.t("subtitle"))
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
         }
@@ -34,10 +34,10 @@ struct ContentView: View {
 
     private var urlField: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("GitHub URL・owner/repo・SKILL.md のリンクでもOK")
+            Text(L10n.t("url_label"))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
-            TextField("https://github.com/owner/repo/.../SKILL.md", text: $urlText)
+            TextField(L10n.t("url_placeholder"), text: $urlText)
                 .textFieldStyle(.roundedBorder)
                 .font(.system(size: 14, design: .monospaced))
                 .disabled(isInstalling)
@@ -46,7 +46,7 @@ struct ContentView: View {
 
     private var agentToggles: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("入れる先")
+            Text(L10n.t("targets_label"))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
             HStack(spacing: 16) {
@@ -61,7 +61,7 @@ struct ContentView: View {
                     .disabled(isInstalling)
                 }
             }
-            Text("本体は常に ~/.agents/skills に保存し、選んだ先へリンクします。")
+            Text(L10n.t("targets_note"))
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
         }
@@ -77,7 +77,7 @@ struct ContentView: View {
                         ProgressView()
                             .controlSize(.small)
                     }
-                    Text(isInstalling ? "入れています…" : "入れる")
+                    Text(isInstalling ? L10n.t("installing") : L10n.t("install"))
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(minWidth: 120)
@@ -88,7 +88,7 @@ struct ContentView: View {
             .keyboardShortcut(.defaultAction)
 
             if !lastSkills.isEmpty {
-                Text("入ったスキル: \(lastSkills.joined(separator: ", "))")
+                Text(L10n.tf("installed_skills", lastSkills.joined(separator: ", ")))
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -99,7 +99,7 @@ struct ContentView: View {
 
     private var logPanel: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("ログ")
+            Text(L10n.t("log_label"))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
             ScrollView {
@@ -138,13 +138,13 @@ struct ContentView: View {
                 try installer.install(input: input, targets: targets)
             }.value
             lastSkills = result.skillNames
-            logText = result.log + "\n\n新しいチャットを開くとスキルが使えます。"
+            logText = result.log + "\n\n" + L10n.t("log_ready")
         } catch {
             errorMessage = error.localizedDescription
             if logText.isEmpty {
                 logText = error.localizedDescription
             } else {
-                logText += "\n\nエラー: \(error.localizedDescription)"
+                logText += "\n\n" + L10n.tf("error_prefix", error.localizedDescription)
             }
         }
         isInstalling = false

@@ -67,7 +67,7 @@ type installResult struct {
 func parseRepo(raw string) (repoRef, error) {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {
-		return repoRef{}, errors.New("GitHub の URL（または owner/repo）が読めませんでした")
+		return repoRef{}, errors.New("bad_url")
 	}
 
 	if strings.Contains(trimmed, "github.com") {
@@ -75,16 +75,15 @@ func parseRepo(raw string) (repoRef, error) {
 		u = strings.TrimPrefix(u, "https://")
 		u = strings.TrimPrefix(u, "http://")
 		u = strings.TrimPrefix(u, "www.")
-		// github.com/owner/repo/...
 		parts := strings.Split(strings.Trim(u, "/"), "/")
 		if len(parts) < 3 || parts[0] != "github.com" {
-			return repoRef{}, errors.New("GitHub の URL（または owner/repo）が読めませんでした")
+			return repoRef{}, errors.New("bad_url")
 		}
 		owner := parts[1]
 		name := strings.TrimSuffix(parts[2], ".git")
 		rest := parts[3:]
 		if len(rest) >= 2 && (rest[0] == "blob" || rest[0] == "tree" || rest[0] == "raw") {
-			rest = rest[2:] // drop blob|tree|raw and ref
+			rest = rest[2:]
 		}
 		filter := ""
 		if len(rest) > 0 {
@@ -98,7 +97,7 @@ func parseRepo(raw string) (repoRef, error) {
 
 	parts := strings.Split(trimmed, "/")
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return repoRef{}, errors.New("GitHub の URL（または owner/repo）が読めませんでした")
+		return repoRef{}, errors.New("bad_url")
 	}
 	return repoRef{Owner: parts[0], Name: strings.TrimSuffix(parts[1], ".git")}, nil
 }
@@ -108,7 +107,7 @@ func runGit(args ...string) (string, error) {
 	out, err := cmd.CombinedOutput()
 	s := string(out)
 	if err != nil {
-		return s, fmt.Errorf("git 失敗: %v\n%s", err, s)
+		return s, fmt.Errorf("%v\n%s", err, s)
 	}
 	return s, nil
 }
@@ -242,7 +241,7 @@ func linkOrCopy(dest, link string) error {
 	return copyDir(dest, link)
 }
 
-func install(input string, agentIDs []string, logfn func(string)) (installResult, error) {
+func install(input string, agentIDs []string, lang appLang, logfn func(string)) (installResult, error) {
 	var lines []string
 	log := func(s string) {
 		shown := tildefy(s)
@@ -254,11 +253,11 @@ func install(input string, agentIDs []string, logfn func(string)) (installResult
 
 	repo, err := parseRepo(input)
 	if err != nil {
-		return installResult{}, err
+		return installResult{}, errors.New(tr(lang, "err_bad_url"))
 	}
-	log(fmt.Sprintf("対象: %s/%s", repo.Owner, repo.Name))
+	log(trf(lang, "log_target", repo.Owner, repo.Name))
 	if repo.PathFilter != "" {
-		log("パス指定: " + repo.PathFilter)
+		log(trf(lang, "log_path", repo.PathFilter))
 	}
 
 	tempRoot, err := os.MkdirTemp("", "SkillDrop-*")
@@ -268,13 +267,13 @@ func install(input string, agentIDs []string, logfn func(string)) (installResult
 	defer os.RemoveAll(tempRoot)
 
 	cloneURL := fmt.Sprintf("https://github.com/%s/%s.git", repo.Owner, repo.Name)
-	log("clone: " + cloneURL)
+	log(trf(lang, "log_clone", cloneURL))
 	out, err := runGit("clone", "--depth", "1", cloneURL, tempRoot)
 	if strings.TrimSpace(out) != "" {
 		log(strings.TrimSpace(out))
 	}
 	if err != nil {
-		return installResult{}, err
+		return installResult{}, fmt.Errorf(tr(lang, "err_git"), err)
 	}
 	_ = os.RemoveAll(filepath.Join(tempRoot, ".git"))
 
@@ -284,12 +283,12 @@ func install(input string, agentIDs []string, logfn func(string)) (installResult
 	}
 	if repo.PathFilter != "" {
 		skills = filterSkills(skills, repo.PathFilter)
-		log("絞り込み後: " + joinNames(skills))
+		log(trf(lang, "log_filtered", joinNames(skills)))
 	} else {
-		log("見つかったスキル: " + joinNames(skills))
+		log(trf(lang, "log_found", joinNames(skills)))
 	}
 	if len(skills) == 0 {
-		return installResult{}, errors.New("SKILL.md が見つかりませんでした")
+		return installResult{}, errors.New(tr(lang, "err_no_skill"))
 	}
 
 	canonical := agentsCanonical()
@@ -313,12 +312,12 @@ func install(input string, agentIDs []string, logfn func(string)) (installResult
 		dest := filepath.Join(canonical.SkillsDir, skill.Name)
 		if _, err := os.Stat(dest); err == nil {
 			_ = os.RemoveAll(dest)
-			log("更新: " + dest)
+			log(trf(lang, "log_update", dest))
 		} else {
-			log("新規: " + dest)
+			log(trf(lang, "log_new", dest))
 		}
 		if err := copyDir(skill.Directory, dest); err != nil {
-			return installResult{}, fmt.Errorf("コピー失敗: %w", err)
+			return installResult{}, fmt.Errorf(tr(lang, "err_copy"), err)
 		}
 		installed = append(installed, skill.Name)
 		for _, t := range targets {
@@ -329,11 +328,11 @@ func install(input string, agentIDs []string, logfn func(string)) (installResult
 			if err := linkOrCopy(dest, link); err != nil {
 				return installResult{}, err
 			}
-			log(fmt.Sprintf("リンク: %s → %s", t.DisplayName, link))
+			log(trf(lang, "log_link", t.DisplayName, link))
 		}
 	}
 
-	log(fmt.Sprintf("完了: %d 件", len(installed)))
+	log(trf(lang, "log_done", len(installed)))
 	return installResult{SkillNames: installed, Log: strings.Join(lines, "\n")}, nil
 }
 
@@ -390,12 +389,14 @@ func runGUI() error {
 		var req struct {
 			URL    string   `json:"url"`
 			Agents []string `json:"agents"`
+			Lang   string   `json:"lang"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		res, err := install(req.URL, req.Agents, nil)
+		lang := detectLang(req.Lang)
+		res, err := install(req.URL, req.Agents, lang, nil)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		if err != nil {
 			_ = json.NewEncoder(w).Encode(map[string]any{
@@ -416,9 +417,10 @@ func runGUI() error {
 	if err != nil {
 		return err
 	}
+	lang := detectLang("")
 	url := fmt.Sprintf("http://%s", ln.Addr().String())
-	fmt.Println("SkillDrop GUI:", url)
-	fmt.Println("ブラウザが開きます。閉じるにはこのウィンドウで Ctrl+C。")
+	fmt.Println(trf(lang, "gui_url", url))
+	fmt.Println(tr(lang, "gui_hint"))
 	go func() {
 		time.Sleep(300 * time.Millisecond)
 		openBrowser(url)
@@ -431,12 +433,16 @@ func main() {
 	if len(args) >= 2 && args[0] == "--install" {
 		url := args[1]
 		agents := []string{"cursor", "claude", "codex"}
+		lang := detectLang("")
 		for i := 0; i < len(args)-1; i++ {
 			if args[i] == "--agents" {
 				agents = strings.Split(args[i+1], ",")
 			}
+			if args[i] == "--lang" {
+				lang = detectLang(args[i+1])
+			}
 		}
-		res, err := install(url, agents, func(s string) { fmt.Println(s) })
+		res, err := install(url, agents, lang, func(s string) { fmt.Println(s) })
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "ERROR:", err)
 			os.Exit(1)

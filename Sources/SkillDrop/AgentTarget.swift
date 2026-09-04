@@ -3,30 +3,37 @@ import Foundation
 /// 導入先エージェント（ホーム直下の skills ディレクトリ）
 struct AgentTarget: Identifiable, Hashable, Sendable {
     let id: String
-    let displayName: String
+    let displayNameKey: String
     let skillsDir: URL
+
+    var displayName: String {
+        if displayNameKey.hasPrefix("lit:") {
+            return String(displayNameKey.dropFirst(4))
+        }
+        return L10n.t(displayNameKey)
+    }
 
     static let agentsCanonical = AgentTarget(
         id: "agents",
-        displayName: "共通本体 (~/.agents)",
+        displayNameKey: "agents_canonical",
         skillsDir: URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".agents/skills")
     )
 
     static let cursor = AgentTarget(
         id: "cursor",
-        displayName: "Cursor",
+        displayNameKey: "lit:Cursor",
         skillsDir: URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".cursor/skills")
     )
 
     static let claude = AgentTarget(
         id: "claude",
-        displayName: "Claude Code",
+        displayNameKey: "lit:Claude Code",
         skillsDir: URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".claude/skills")
     )
 
     static let codex = AgentTarget(
         id: "codex",
-        displayName: "Codex",
+        displayNameKey: "lit:Codex",
         skillsDir: URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".codex/skills")
     )
 

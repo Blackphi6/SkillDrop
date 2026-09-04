@@ -34,9 +34,9 @@ cat > "$APP_DIR/Contents/Info.plist" <<'PLIST'
   <key>CFBundleIdentifier</key>
   <string>local.skilldrop.app</string>
   <key>CFBundleVersion</key>
-  <string>6</string>
+  <string>7</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.2.2</string>
+  <string>1.2.3</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleExecutable</key>

@@ -15,6 +15,7 @@ Apple の**有料**デベロッパ登録がないと、ブラウザから落と�
 
 ```bash
 brew tap Blackphi6/skilldrop https://github.com/Blackphi6/SkillDrop
+brew trust Blackphi6/skilldrop
 brew install --cask skilldrop
 ```
 

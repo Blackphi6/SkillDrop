@@ -5,35 +5,45 @@ GitHub の Agent Skill を、ボタンひとつで **Cursor / Claude Code / Code
 | 版 | 対応 | 状態 |
 |----|------|------|
 | macOS (`SkillDrop.app`) | Apple Silicon (arm64) | 動作確認済み |
-| Windows (`.exe`) | amd64 / arm64 | **ソース同梱・クロスビルド済み（実機未確認）** |
+| Windows (`.exe`) | amd64 / arm64 | 実機未確認 |
 
-## 使い方（macOS）
+## いちばん楽な入れ方（macOS）
 
-1. [Releases](https://github.com/Blackphi6/SkillDrop/releases) から `SkillDrop-macos-arm64.zip` をダウンロード
-2. 解凍して **`Install.command` をダブルクリック**（推奨）
-3. `/Applications` に入り、自動で起動します
+Apple の**有料**デベロッパ登録がないと、ブラウザから落とした `.app` は必ず Gatekeeper に止められます（無料アカウントでは公証できません）。
 
-ブラウザから落とした `SkillDrop.app` を直接開くと、未公証のため「壊れている」と出ることがあります。そのときは `Install.command` を使うか:
+だから **Homebrew 経由**がおすすめです（設定画面の「このまま開く」が不要）:
 
 ```bash
-xattr -cr /Applications/SkillDrop.app
-open /Applications/SkillDrop.app
+brew tap Blackphi6/skilldrop https://github.com/Blackphi6/SkillDrop
+brew install --cask skilldrop
 ```
 
-本体は `~/.agents/skills` に保存し、選んだエージェントへシンボリックリンクします。
+更新:
 
-`SKILL.md` への直リンクなら、そのスキルだけ入ります。リポジトリのトップ URL だと、見つかったスキルがまとめて入ります。
+```bash
+brew upgrade --cask skilldrop
+```
 
-## 使い方（Windows・実験的）
+## zip から入れる場合（非推奨）
 
-1. Releases から `SkillDrop-windows-amd64.zip`（または arm64）をダウンロード
-2. 解凍し、`SkillDrop-windows-amd64.exe` を実行（または `SkillDrop.bat`）
-3. ブラウザが開き、Mac 版と同じ画面で導入できます
-4. **git が PATH に入っている必要があります**（[Git for Windows](https://git-scm.com/download/win)）
+[Releases](https://github.com/Blackphi6/SkillDrop/releases) の `SkillDrop-macos-arm64.zip` を解凍したあと:
 
-Windows ではシンボリックリンクが拒否される環境があるため、失敗時はコピーに切り替えます。
+```bash
+xattr -cr ./SkillDrop.app
+open ./SkillDrop.app
+```
 
-### コマンド（共通）
+（アプリを直接ダブルクリックすると「壊れている／検証できません」になります）
+
+## 使い方
+
+1. アプリを開く
+2. GitHub URL（または `owner/repo`、`.../SKILL.md`）を貼る
+3. Cursor / Claude Code / Codex にチェックして **入れる**
+
+本体は `~/.agents/skills` に保存し、選んだエージェントへリンクします。
+
+### コマンド
 
 ```bash
 # macOS
@@ -43,26 +53,24 @@ Windows ではシンボリックリンクが拒否される環境があるため
 SkillDrop-windows-amd64.exe --install https://github.com/coji/natural-japanese --agents cursor,claude,codex
 ```
 
+## Windows（実験的）
+
+1. Releases から `SkillDrop-windows-amd64.zip`（または arm64）をダウンロード
+2. `.exe` を実行（**Git for Windows** が PATH にあること）
+
 ## 自分でビルド
 
-### macOS
-
-Xcode / Swift 6、Apple Silicon Mac が必要です。
-
 ```bash
-./build-app.sh
-open dist/SkillDrop.app
+# macOS app + zip
+./package-macos.sh
+
+# Windows exe（クロスコンパイル）
+cd windows && ./build-windows.sh
 ```
 
-### Windows exe（Mac 上でクロスコンパイル可）
+## 公証について
 
-Go 1.22+ が必要です。
-
-```bash
-cd windows
-./build-windows.sh
-# → ../dist/SkillDrop-windows-amd64.exe など
-```
+ダブルクリックだけで警告ゼロにするには、Apple Developer Program（有料）の **Developer ID** 証明書と **notarization** が必要です。いまのアカウントは無料の Personal Team のため、公証はできません。有料登録できたら対応できます。
 
 ## ライセンス
 

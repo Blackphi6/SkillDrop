@@ -23,11 +23,50 @@ enum SkillInstallError: LocalizedError {
 struct InstallResult: Sendable {
     let skillNames: [String]
     let log: String
+    var failedCount: Int = 0
 }
 
 /// GitHub のスキルを ~/.agents に置き、選んだエージェントへリンクする
 struct SkillInstaller: Sendable {
     func install(input: String, targets: [AgentTarget], onLog: (String) -> Void = { _ in }) throws -> InstallResult {
+        let items = InstallInput.split(input)
+        guard !items.isEmpty else { throw SkillInstallError.badURL }
+        if items.count == 1 {
+            return try installOne(input: items[0], targets: targets, onLog: onLog)
+        }
+
+        var names: [String] = []
+        var lines: [String] = []
+        var failed = 0
+        var lastError: Error?
+        func emit(_ s: String) {
+            let shown = Self.tildefy(s)
+            lines.append(shown)
+            onLog(shown)
+        }
+
+        for (idx, item) in items.enumerated() {
+            emit(L10n.tf("log_item", idx + 1, items.count, item))
+            do {
+                let result = try installOne(input: item, targets: targets) { msg in
+                    lines.append(msg)
+                    onLog(msg)
+                }
+                names.append(contentsOf: result.skillNames)
+            } catch {
+                lastError = error
+                failed += 1
+                emit(L10n.tf("error_prefix", error.localizedDescription))
+            }
+        }
+        emit(L10n.tf("log_batch_done", names.count, failed))
+        if names.isEmpty {
+            throw lastError ?? SkillInstallError.badURL
+        }
+        return InstallResult(skillNames: names, log: lines.joined(separator: "\n"), failedCount: failed)
+    }
+
+    private func installOne(input: String, targets: [AgentTarget], onLog: (String) -> Void) throws -> InstallResult {
         var lines: [String] = []
         func log(_ s: String) {
             let shown = Self.tildefy(s)

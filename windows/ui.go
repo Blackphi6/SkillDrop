@@ -14,7 +14,7 @@ const indexHTML = `<!DOCTYPE html>
   h1 { font-size: 28px; margin: 0 0 6px; font-weight: 650; }
   .sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
   label { display:block; font-size:12px; color: var(--muted); margin-bottom: 8px; }
-  input[type=text] { width:100%; padding:12px 14px; border-radius:10px; border:1px solid #3a3a3c; background:#000; color:var(--fg); font-family: ui-monospace, Consolas, monospace; font-size:14px; }
+  textarea { width:100%; min-height:88px; padding:12px 14px; border-radius:10px; border:1px solid #3a3a3c; background:#000; color:var(--fg); font-family: ui-monospace, Consolas, monospace; font-size:14px; resize:vertical; }
   .agents { display:flex; gap:16px; flex-wrap:wrap; margin: 18px 0 22px; }
   .agents label { display:flex; gap:8px; align-items:center; color:var(--fg); font-size:14px; margin:0; }
   button { background: var(--accent); color:#111; border:0; border-radius:10px; padding:12px 22px; font-size:15px; font-weight:650; cursor:pointer; }
@@ -40,7 +40,7 @@ const indexHTML = `<!DOCTYPE html>
   <h1>SkillDrop</h1>
   <p class="sub" data-i18n="subtitle"></p>
   <label for="url" data-i18n="url_label"></label>
-  <input id="url" type="text" data-i18n-placeholder="url_placeholder" value=""/>
+  <textarea id="url" rows="4" data-i18n-placeholder="url_placeholder"></textarea>
   <div class="agents">
     <label><input type="checkbox" value="cursor" checked/> Cursor</label>
     <label><input type="checkbox" value="claude" checked/> Claude Code</label>
@@ -55,8 +55,8 @@ const indexHTML = `<!DOCTYPE html>
 const I18N = {
   en: {
     subtitle: "Paste a URL and install Agent Skills into Cursor / Claude Code / Codex.<br/>(Windows build — behavior may vary by environment)",
-    url_label: "GitHub URL, owner/repo, or a SKILL.md link",
-    url_placeholder: "https://github.com/owner/repo/.../SKILL.md",
+    url_label: "GitHub URL, owner/repo, or a SKILL.md link (one per line)",
+    url_placeholder: "https://github.com/owner/repo (one per line)",
     install: "Install",
     installing: "Installing…",
     note: "Saved under %USERPROFILE%\\.agents\\skills. Git must be on PATH.",
@@ -67,8 +67,8 @@ const I18N = {
   },
   ja: {
     subtitle: "GitHub のスキル URL を入れて、Cursor / Claude Code / Codex にまとめて入れます。<br/>（Windows 版・動作は環境によって未確認のことがあります）",
-    url_label: "GitHub URL・owner/repo・SKILL.md のリンク",
-    url_placeholder: "https://github.com/owner/repo/.../SKILL.md",
+    url_label: "1行に1つ。改行すればまとめて入れられます",
+    url_placeholder: "https://github.com/owner/repo （改行で複数）",
     install: "入れる",
     installing: "入れています…",
     note: "本体は %USERPROFILE%\\.agents\\skills に保存します。git が PATH に入っている必要があります。",
@@ -79,8 +79,8 @@ const I18N = {
   },
   "zh-Hans": {
     subtitle: "粘贴 GitHub 技能 URL，一键安装到 Cursor / Claude Code / Codex。<br/>（Windows 版，实际效果可能因环境而异）",
-    url_label: "可用 GitHub URL、owner/repo，或 SKILL.md 链接",
-    url_placeholder: "https://github.com/owner/repo/.../SKILL.md",
+    url_label: "每行一个。换行即可一次安装多个",
+    url_placeholder: "https://github.com/owner/repo （每行一个）",
     install: "安装",
     installing: "正在安装…",
     note: "保存在 %USERPROFILE%\\.agents\\skills。需要 PATH 中有 git。",

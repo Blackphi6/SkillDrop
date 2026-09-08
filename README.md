@@ -39,8 +39,8 @@ open ./SkillDrop.app
 ## 使い方
 
 1. アプリを開く
-2. GitHub URL（または `owner/repo`、`.../SKILL.md`）を貼る
-3. Cursor / Claude Code / Codex にチェックして **入れる**
+2. GitHub URL（または `owner/repo`、`.../SKILL.md`）を貼る。**1行に1つ**で、改行すればまとめて入ります
+3. Cursor / Claude Code / Codex にチェックして **入れる**（⌘↩）
 
 本体は `~/.agents/skills` に保存し、選んだエージェントへリンクします。
 
@@ -48,7 +48,7 @@ open ./SkillDrop.app
 
 ```bash
 # macOS
-./SkillDrop.app/Contents/MacOS/SkillDrop --install https://github.com/coji/natural-japanese --agents cursor,claude,codex
+./SkillDrop.app/Contents/MacOS/SkillDrop --install https://github.com/coji/natural-japanese https://github.com/nwiizo/oi-owarasero --agents cursor,claude,codex
 
 # Windows
 SkillDrop-windows-amd64.exe --install https://github.com/coji/natural-japanese --agents cursor,claude,codex

@@ -37,7 +37,8 @@ struct ContentView: View {
             Text(L10n.t("url_label"))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
-            TextField(L10n.t("url_placeholder"), text: $urlText)
+            TextField(L10n.t("url_placeholder"), text: $urlText, axis: .vertical)
+                .lineLimit(3...10)
                 .textFieldStyle(.roundedBorder)
                 .font(.system(size: 14, design: .monospaced))
                 .disabled(isInstalling)
@@ -85,7 +86,7 @@ struct ContentView: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .disabled(isInstalling || urlText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selected.isEmpty)
-            .keyboardShortcut(.defaultAction)
+            .keyboardShortcut(.return, modifiers: .command)
 
             if !lastSkills.isEmpty {
                 Text(L10n.tf("installed_skills", lastSkills.joined(separator: ", ")))
@@ -139,6 +140,9 @@ struct ContentView: View {
             }.value
             lastSkills = result.skillNames
             logText = result.log + "\n\n" + L10n.t("log_ready")
+            if result.failedCount > 0 {
+                errorMessage = L10n.tf("err_partial", result.failedCount)
+            }
         } catch {
             errorMessage = error.localizedDescription
             if logText.isEmpty {
@@ -153,5 +157,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .frame(width: 560, height: 560)
+        .frame(width: 560, height: 620)
 }

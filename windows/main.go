@@ -241,7 +241,65 @@ func linkOrCopy(dest, link string) error {
 	return copyDir(dest, link)
 }
 
+func splitInputs(raw string) []string {
+	raw = strings.ReplaceAll(strings.ReplaceAll(raw, "\r\n", "\n"), "\r", "\n")
+	var out []string
+	for _, line := range strings.Split(raw, "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			out = append(out, line)
+		}
+	}
+	return out
+}
+
 func install(input string, agentIDs []string, lang appLang, logfn func(string)) (installResult, error) {
+	items := splitInputs(input)
+	if len(items) == 0 {
+		return installResult{}, errors.New(tr(lang, "err_bad_url"))
+	}
+	if len(items) == 1 {
+		return installOne(items[0], agentIDs, lang, logfn)
+	}
+
+	var names []string
+	var lines []string
+	failed := 0
+	var lastErr error
+	emit := func(s string) {
+		s = tildefy(s)
+		lines = append(lines, s)
+		if logfn != nil {
+			logfn(s)
+		}
+	}
+	for i, item := range items {
+		emit(trf(lang, "log_item", i+1, len(items), item))
+		res, err := installOne(item, agentIDs, lang, func(s string) {
+			lines = append(lines, s)
+			if logfn != nil {
+				logfn(s)
+			}
+		})
+		if err != nil {
+			lastErr = err
+			failed++
+			emit("ERROR: " + err.Error())
+			continue
+		}
+		names = append(names, res.SkillNames...)
+	}
+	emit(trf(lang, "log_batch_done", len(names), failed))
+	if len(names) == 0 {
+		if lastErr != nil {
+			return installResult{Log: strings.Join(lines, "\n")}, lastErr
+		}
+		return installResult{Log: strings.Join(lines, "\n")}, errors.New(tr(lang, "err_bad_url"))
+	}
+	return installResult{SkillNames: names, Log: strings.Join(lines, "\n")}, nil
+}
+
+func installOne(input string, agentIDs []string, lang appLang, logfn func(string)) (installResult, error) {
 	var lines []string
 	log := func(s string) {
 		shown := tildefy(s)
@@ -430,19 +488,38 @@ func runGUI() error {
 
 func main() {
 	args := os.Args[1:]
+	if len(args) >= 1 && args[0] == "--self-check" {
+		got := strings.Join(splitInputs("a\r\nb\n\nc "), ",")
+		if got != "a,b,c" {
+			fmt.Fprintln(os.Stderr, "self-check failed:", got)
+			os.Exit(1)
+		}
+		fmt.Println("ok")
+		return
+	}
 	if len(args) >= 2 && args[0] == "--install" {
-		url := args[1]
+		var urls []string
 		agents := []string{"cursor", "claude", "codex"}
 		lang := detectLang("")
-		for i := 0; i < len(args)-1; i++ {
-			if args[i] == "--agents" {
-				agents = strings.Split(args[i+1], ",")
+		for i := 1; i < len(args); i++ {
+			a := args[i]
+			if a == "--agents" || a == "--lang" {
+				if i+1 < len(args) {
+					if a == "--agents" {
+						agents = strings.Split(args[i+1], ",")
+					} else {
+						lang = detectLang(args[i+1])
+					}
+					i++
+				}
+				continue
 			}
-			if args[i] == "--lang" {
-				lang = detectLang(args[i+1])
+			if strings.HasPrefix(a, "--") {
+				continue
 			}
+			urls = append(urls, splitInputs(a)...)
 		}
-		res, err := install(url, agents, lang, func(s string) { fmt.Println(s) })
+		res, err := install(strings.Join(urls, "\n"), agents, lang, func(s string) { fmt.Println(s) })
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "ERROR:", err)
 			os.Exit(1)
